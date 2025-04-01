@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Create chat</title>
+</head>
+<body>
+    <h1>Create one-tume chat</h1>
+
+    {% if chat_link %}
+        <div>
+            <p>Copy or enter on link</p>
+            <input type="text" value="{{ chat_link }}" readonly style="width: 400px;">
+            <p><a href="{{ chat_link }}">Go to chat</a></p>
+        </div>
+        <hr>
+    {% else %}
+        <form method="post">
+            {% csrf_token %}
+            <label>Password (optional)</label>
+            <input type="text" name="password">
+            <br><br>
+            <button type="submit">Create chat</button>
+        </form>
+    {% endif %}
+</body>
+</html>
