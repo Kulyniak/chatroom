@@ -1,55 +1,59 @@
 <!DOCTYPE html>
 <html>
+
 <head>
     <title>Чат кімната</title>
 </head>
+
 <body>
     <h2>Chat room: {{ chat_id }}</h2>
 
     <p style="margin-top: 15px;">
-        <a href="{% url 'home' %}" style="text-decoration: none; background: #eee; padding: 6px 10px; border-radius: 5px;">⬅️ Back to main</a>
+        <a href="{% url 'home' %}"
+            style="text-decoration: none; background: #eee; padding: 6px 10px; border-radius: 5px;">⬅️ Back to main</a>
     </p>
-    
+
     {% if not username %}
-        <form method="post">
-            {% csrf_token %}
-            <label>Your name:</label>
-            <input type="text" name="username" required>
-            <button type="submit">Увійти</button>
-        </form>
+    <form method="post">
+        {% csrf_token %}
+        <label>Your name:</label>
+        <input type="text" name="username" required>
+        <button type="submit">Увійти</button>
+    </form>
     {% else %}
-        <div>
-            <p>Hi {{ username }}!</p>
+    <div>
+        <p>Hi {{ username }}!</p>
 
-           
-            <form method="post" action="{% url 'delete_chat' chat_id %}" onsubmit="return confirm('Are you sure you are ready to Delete this chat?');">
-                {% csrf_token %}
-                <button type="submit" style="color: red;">🗑 Delete Chat</button>
-            </form>
 
-       
-            <p style="margin-top: 10px;">
-                Auto delete in <span id="timer">{{ minutes_left }}</span> хв.
-            </p>
+        <form method="post" action="{% url 'delete_chat' chat_id %}"
+            onsubmit="return confirm('Are you sure you are ready to Delete this chat?');">
+            {% csrf_token %}
+            <button type="submit" style="color: red;">🗑 Delete Chat</button>
+        </form>
 
-         
-            <div id="chat-box" style="border:1px solid #000; height:300px; overflow-y:scroll; margin-top: 10px;">
-                {% for msg in messages %}
-                    <p><strong>{{ msg.username }}:</strong> {{ msg.text }}</p>
-                {% endfor %}
-            </div>
 
-           
-            <form method="post" style="margin-top: 10px;">
-                {% csrf_token %}
-                <input type="hidden" name="username" value="{{ username }}">
-                <input type="text" name="message" placeholder="Написати..." required>
-                <button type="submit">Send</button>
-            </form>
+        <p style="margin-top: 10px;">
+            Auto delete in <span id="timer">{{ minutes_left }}</span> хв.
+        </p>
+
+
+        <div id="chat-box" style="border:1px solid #000; height:300px; overflow-y:scroll; margin-top: 10px;">
+            {% for msg in messages %}
+            <p><strong>{{ msg.username }}:</strong> {{ msg.text }}</p>
+            {% endfor %}
         </div>
+
+
+        <form method="post" style="margin-top: 10px;">
+            {% csrf_token %}
+            <input type="hidden" name="username" value="{{ username }}">
+            <input type="text" name="message" placeholder="Написати..." required>
+            <button type="submit">Send</button>
+        </form>
+    </div>
     {% endif %}
 
-   
+
     <script>
         let expiresAt = new Date({{ expires_at.timestamp|floatformat:0 }} * 1000); 
 
@@ -68,7 +72,23 @@
         }
 
         updateTimer();
+
         let timer = setInterval(updateTimer, 60000); 
+        function checkChatStatus() {
+            fetch("{% url 'check_chat_status' chat_id %}")
+                .then(response => response.json())
+                .then(data => {
+                    if (!data.active) {
+                        alert("This chat has been deleted.");
+                        window.location.href = "{% url 'home' %}";
+                    }
+                });
+        }
+
+        
+        setInterval(checkChatStatus, 5000);
     </script>
+
 </body>
+
 </html>

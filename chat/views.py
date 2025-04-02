@@ -2,6 +2,10 @@ from django.shortcuts import redirect, render
 from .models import ChatRoom, Message
 from django.utils import timezone
 from datetime import timedelta
+from django.http import JsonResponse
+from django.views.decorators.cache import never_cache
+
+
 # Create your views here.
 def home(request):
     chat_link = None
@@ -18,6 +22,7 @@ def create_chat(request):
     return redirect(f'/chat/{room.id}')
 
 
+@never_cache
 def chat_room(request, chat_id):
     try:
         room = ChatRoom.objects.get(id=chat_id, is_active=True)
@@ -40,8 +45,9 @@ def chat_room(request, chat_id):
         elif entered_pass != room.password:
             return render(request, 'chat_password.html', {'chat_id': chat_id})
     
-    if timezone.now() - room.last_activity > timedelta(hours=1):
-        room.is_active = False
+    if timezone.now() - room.last_activity > timedelta(minutes=1):
+        Message.objects.filter(chat_id=chat_id).delete()
+        ChatRoom.objects.filter(id=chat_id).delete()
         room.save()
         return render(request, 'chat_expired.html')
 
@@ -74,6 +80,15 @@ def chat_room(request, chat_id):
         'expires_at': expires_at
     })
     
+
+
+def check_chat_status(request, chat_id):
+    try:
+        room = ChatRoom.objects.get(id=chat_id)
+        return JsonResponse({'active': room.is_active})
+    except ChatRoom.DoesNotExist:
+        return JsonResponse({'active': False})
+
     
 def delete_chat(request, chat_id):
     if request.method == 'POST':
