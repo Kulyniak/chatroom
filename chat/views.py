@@ -45,7 +45,7 @@ def chat_room(request, chat_id):
         elif entered_pass != room.password:
             return render(request, 'chat_password.html', {'chat_id': chat_id})
     
-    if timezone.now() - room.last_activity > timedelta(minutes=1):
+    if timezone.now() - room.last_activity > timedelta(minutes=60):
         Message.objects.filter(chat_id=chat_id).delete()
         ChatRoom.objects.filter(id=chat_id).delete()
         room.save()
