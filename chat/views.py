@@ -28,15 +28,17 @@ def chat_room(request, chat_id):
         session_key = f'chat_pass_{chat_id}'
         entered_pass = request.session.get(session_key)
 
-    if request.method == 'POST' and 'password' in request.POST:
-        if request.POST['password'] == room.password:
-            request.session[session_key] = room.password
-        else:
-            return render(request, 'chat_password.html', {'chat_id': chat_id, 'error': 'Incorrect password'})
+        if request.method == 'POST' and 'password' in request.POST:
+            if request.POST['password'] == room.password:
+                request.session[session_key] = room.password
+            else:
+                return render(request, 'chat_password.html', {
+                    'chat_id': chat_id,
+                    'error': 'Incorrect password'
+                })
 
-    elif entered_pass != room.password:
-        return render(request, 'chat_password.html', {'chat_id': chat_id})
-    
+        elif entered_pass != room.password:
+            return render(request, 'chat_password.html', {'chat_id': chat_id})
     
     if timezone.now() - room.last_activity > timedelta(hours=1):
         room.is_active = False
